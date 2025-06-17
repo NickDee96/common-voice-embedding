@@ -199,9 +199,11 @@ finetune_engine = SentenceTransformersFinetuneEngine(
 ```
 
 **Key Components:**
-- Base model: BAAI/bge-small-en (multilingual capability)
-- Training framework: SentenceTransformers
-- Evaluation: Hit rate and IR metrics
+- Base model: BAAI/bge-small-en (384-dimensional embeddings)
+- Training framework: SentenceTransformers with MultipleNegativesRankingLoss
+- Maximum sequence length: 512 tokens
+- Similarity function: Cosine similarity
+- Evaluation: Hit rate and comprehensive IR metrics
 
 **Visual Elements:**
 - Code snippets with syntax highlighting
@@ -210,31 +212,136 @@ finetune_engine = SentenceTransformersFinetuneEngine(
 
 ---
 
-## Slide 9: Evaluation Framework - Measuring Success
-**Novel Metrics for Linguistic Diversity**
+## Slide 9A: Deep Dive into Information Retrieval Metrics
+**What Do These Numbers Actually Mean?**
 
-**Our Evaluation Approach:**
+**Accuracy@K - The Success Rate:**
+- **Definition:** Percentage of queries where the correct document appears in top-K results
+- **Real-world meaning:** "Out of 100 user questions, how many got the right answer?"
+- **Our results:** 72.2% → 92.4% @ K=1 means 20 more users out of 100 get immediate answers
 
-**Primary Metrics:**
-- **Hit Rate@K:** Percentage of correct retrievals in top-K results
-- **Query Diversity Robustness:** Success on paraphrased/vernacular queries
-- **Coverage Breadth:** Performance on underrepresented topics
+**Mean Reciprocal Rank (MRR) - The Speed Factor:**
+- **Definition:** Average of 1/(position of first correct answer)
+- **Real-world meaning:** "How quickly do users find what they need?"
+- **Calculation example:** Answer at position 1 = 1.0, position 2 = 0.5, position 3 = 0.33
+- **Our results:** 0.767 → 0.938 means users find answers much faster
 
-**Three-Model Comparison:**
-1. **OpenAI Ada Embeddings** (proprietary baseline)
-2. **BAAI/bge-small-en** (open source baseline)
-3. **Our Fine-tuned Model** (Common Voice enhanced)
+**NDCG@K - The Ranking Quality:**
+- **Definition:** Measures how well the system ranks relevant results at the top
+- **Real-world meaning:** "Are the best answers shown first?"
+- **Why it matters:** Users typically only look at the first few results
+- **Our results:** 0.791 → 0.944 shows dramatically better result ordering
 
-**Test Scenarios:**
-- Formal vs. colloquial query variations
-- Cross-lingual retrieval tasks
-- Domain-specific Swahili content
-- Paraphrasing robustness tests
+**Precision vs Recall - The Quality vs Coverage Trade-off:**
+- **Precision@K:** "Of the results shown, how many are actually relevant?"
+- **Recall@K:** "Of all relevant documents, how many did we find?"
+- **RAG balance:** Need high precision (no noise) AND high recall (complete coverage)
+
+**Concrete Example: Query "Jinsi ya kupika ugali" (How to cook ugali)**
+
+**Poor System (BGE baseline):**
+1. Recipe for pasta (irrelevant)
+2. Ugali nutrition facts (somewhat relevant)
+3. **How to cook ugali** (correct answer at rank 3)
+4. Maize farming (irrelevant)
+5. Kitchen equipment (irrelevant)
+
+Results: Accuracy@1: ❌, MRR: 0.33, Precision@5: 0.2 (lots of noise)
+
+**Good System (Our fine-tuned):**
+1. **How to cook ugali** (correct answer at rank 1)
+2. Ugali recipe variations (relevant)
+3. Ugali serving suggestions (relevant)
+4. Kenyan cooking techniques (relevant)
+5. Traditional African foods (relevant)
+
+Results: Accuracy@1: ✅, MRR: 1.0, Precision@5: 1.0 (no noise)
 
 **Visual Elements:**
-- Evaluation methodology flowchart
-- Sample query variations
-- Metrics comparison framework
+- Interactive examples showing metric calculations
+- User journey illustrations
+- Search result ranking comparisons
+
+---
+
+## Slide 9A: Deep Dive into Information Retrieval Metrics
+**What Do These Numbers Actually Mean?**
+
+**Model Performance From README:**
+Our fine-tuned model achieves these remarkable scores:
+- **Cosine Accuracy@1:** 0.924 (92.4%)
+- **Cosine Accuracy@5:** 0.959 (95.9%)
+- **Cosine NDCG@10:** 0.9443
+- **Cosine MRR@10:** 0.9382
+
+**Training Progression (from model logs):**
+| Epoch | Step | NDCG@10 |
+|:-----:|:----:|:-------:|
+| 0.17  | 50   | 0.8917  |
+| 1.00  | 300  | 0.9346  |
+| **2.00** | **600** | **0.9443** |
+
+**What This Means in Practice:**
+
+**Accuracy@1 = 92.4%:**
+- Out of 100 user queries, 92 get the perfect answer as the #1 result
+- This is exceptional performance - most users find what they need immediately
+
+**NDCG@10 = 0.9443:**
+- Near-perfect ranking quality (1.0 is theoretical maximum)
+- Relevant results consistently appear at the top
+- Users see high-quality, ordered results
+
+**MRR@10 = 0.9382:**
+- Average position of correct answers is very high (close to position 1)
+- Fast user satisfaction with minimal scrolling needed
+
+**Real-World Impact:**
+- **95.9%** of queries succeed in top-5 results
+- **28% improvement** over baseline in immediate answer finding
+- Dramatic reduction in user frustration and search time
+
+**Visual Elements:**
+- Performance progression charts
+- Before/after user experience scenarios
+- Metric calculation examples
+
+---
+
+## Slide 9: Evaluation Framework - Measuring Success
+**Understanding Information Retrieval Metrics**
+
+**Core Metrics Explained:**
+
+**Hit Rate/Accuracy@K (0-100%):**
+- **What:** % of queries finding correct answer in top-K results
+- **Why:** Direct measure of success - "Did we find what users need?"
+- **Example:** 95.9% @ K=5 means 96 out of 100 queries succeed
+
+**Mean Reciprocal Rank (MRR) (0-1.0):**
+- **What:** Average of 1/rank for first correct result
+- **Why:** Rewards finding answers quickly (rank 1 = 1.0, rank 2 = 0.5)
+- **Impact:** Higher MRR = faster user satisfaction
+
+**NDCG@K (0-1.0):**
+- **What:** Ranking quality with position-based decay
+- **Why:** Top results matter most to users
+- **Impact:** Better prioritization of relevant content
+
+**Three-Model Comparison:**
+1. **OpenAI Ada** (proprietary baseline)
+2. **BAAI/bge-small-en** (open source baseline)  
+3. **Our Fine-tuned Model** (Common Voice enhanced)
+
+**Why These Matter for RAG:**
+- **Accuracy@1:** Immediate answer finding
+- **MRR:** User experience speed
+- **Recall:** Knowledge coverage completeness
+
+**Visual Elements:**
+- Metrics explanation diagrams
+- Before/after comparison examples
+- User experience impact visualization
 
 ---
 
@@ -242,14 +349,14 @@ finetune_engine = SentenceTransformersFinetuneEngine(
 **The Numbers Prove Our Approach Works**
 
 **Hit Rate Performance:**
-- **OpenAI Ada:** 65% Hit Rate@5
-- **BAAI/bge-small-en:** 58% Hit Rate@5
-- **Our Fine-tuned Model:** 78% Hit Rate@5 ⬆️ **+13% improvement**
+- **BAAI/bge-small-en (baseline):** 82.8% Hit Rate@5
+- **Our Fine-tuned Model:** 95.9% Hit Rate@5 ⬆️ **+15.8% improvement**
 
 **Information Retrieval Metrics:**
-- **Precision@10:** +15% improvement over baseline
-- **Recall@10:** +18% improvement over baseline
-- **MRR:** +22% improvement in ranking quality
+- **Accuracy@1:** 72.2% → 92.4% (+28.0% improvement)
+- **MRR@10:** 0.767 → 0.938 (+22.3% improvement)
+- **NDCG@10:** 0.791 → 0.944 (+19.3% improvement)
+- **Recall@10:** 86.7% → 96.3% (+11.1% improvement)
 
 **Key Achievements:**
 - ✅ Small fine-tuned model outperforms expensive proprietary embeddings
@@ -338,6 +445,17 @@ This work demonstrates how to systematically address linguistic diversity using 
 ## Slide 13: Technical Implementation Overview
 **Complete Pipeline in Production**
 
+**Model Architecture (from README):**
+```
+SentenceTransformer(
+  (0): Transformer({'max_seq_length': 512, 'do_lower_case': True}) 
+      with Transformer model: BertModel 
+  (1): Pooling({'word_embedding_dimension': 384, 
+                'pooling_mode_cls_token': True})
+  (2): Normalize()
+)
+```
+
 **Key Implementation Components:**
 
 **Data Pipeline:**
@@ -359,11 +477,24 @@ qa_pairs = generate_qa_embedding_pairs(
 
 **Model Training:**
 ```python
-# Fine-tune embeddings
+# Fine-tune embeddings with specific hyperparameters
 model = SentenceTransformersFinetuneEngine(
-    qa_pairs, "BAAI/bge-small-en"
+    qa_pairs, 
+    model_id="BAAI/bge-small-en",
+    eval_strategy="steps",
+    per_device_train_batch_size=10,
+    num_train_epochs=2,
+    learning_rate=5e-05
 ).train()
 ```
+
+**Training Hyperparameters (from README):**
+- **Loss Function:** MultipleNegativesRankingLoss
+- **Learning Rate:** 5e-05
+- **Batch Size:** 10 per device
+- **Training Epochs:** 2
+- **Evaluation Strategy:** Every 50 steps
+- **Similarity Function:** Cosine similarity
 
 **Production Considerations:**
 - Model size vs. performance trade-offs
