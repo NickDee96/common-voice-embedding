@@ -28,6 +28,7 @@ MANIFEST
 
 test_model/
 .conda/
+presentation.md
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
