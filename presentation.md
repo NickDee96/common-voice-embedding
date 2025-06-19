@@ -1,0 +1,709 @@
+# Building Linguistically Robust RAG Systems with Common Voice Transcriptions
+**1-Hour Presentation**
+
+---
+
+## Slide 1: Title Slide
+**Title:** Building Linguistically Robust RAG Systems with Common Voice Transcriptions
+
+**Subtitle:** Leveraging Speech-Derived Text for Enhanced Query Diversity Handling
+
+**Presentation Details:**
+- Duration: 1 Hour
+- Format: Technical Presentation
+- Target: NLP Engineers, Data Scientists, Researchers
+
+**Presenter Information:** Nick Mumero, THiNK
+
+**Visual Elements:**
+- Background: Professional gradient with tech theme
+- Logo placement: Mozilla Common Voice, THiNK, Hugging Face
+- Image: Abstract visualization of speech waveforms transforming into text embeddings
+
+---
+
+## Slide 2: Presentation Overview
+**What We'll Cover in 60 Minutes**
+
+**Foundation (15 minutes)**
+- THiNK's mission and African language AI focus
+- RAG systems and the "formality gap" problem
+- Mozilla Common Voice as an untapped resource
+
+**Technical Innovation (30 minutes)**
+- Our novel speech-to-text approach for RAG enhancement
+- Pipeline architecture and methodology
+- Evaluation results and performance improvements
+
+**Impact & Future (15 minutes)**
+- Real-world applications and scalability
+- Open source contributions and community building
+- Q&A and discussion
+
+**Visual Elements:**
+- Simplified timeline graphic
+- Key outcome highlights
+
+---
+
+## Slide 3: About THiNK - African Language AI Pioneers
+**Empowering Innovation Through Inclusive Technology**
+
+**Tech Innovators Network (THiNK):**
+- **Founded:** 2019, Nairobi, Kenya
+- **Mission:** Digital transformation through open innovation
+- **Focus:** African languages and inclusive AI systems
+
+**Current Projects:**
+- Swahili speech recognition models on Hugging Face
+- Luo-Swahili translation systems
+- Voice assistants for underrepresented languages
+- Community-driven language technology
+
+**Why This Matters:**
+Africa has 1.3 billion people speaking 2000+ languages, yet most AI systems ignore this linguistic diversity.
+
+**Visual Elements:**
+- THiNK logo and Nairobi location
+- Map showing African language diversity
+- Screenshots of Hugging Face models
+
+---
+
+## Slide 4: The RAG Problem We're Solving
+**Two Critical Limitations in Current Systems**
+
+**What is RAG?**
+Retrieval-Augmented Generation combines LLMs with external knowledge retrieval for accurate, contextual responses.
+
+**Problem 1: The "Formality Gap"**
+- Users speak colloquially: "How do I fix my car's weird noises?"
+- Knowledge bases use formal text: "Automotive diagnostic procedures"
+- Poor retrieval due to vocabulary mismatch
+
+**Problem 2: Linguistic Diversity Gaps**
+- Traditional corpora miss vernacular expressions
+- Underrepresented languages lack sufficient coverage
+- Regional variations not captured in formal text
+
+**Impact:** Reduced effectiveness for diverse populations and minority languages
+
+**Visual Elements:**
+- RAG architecture diagram
+- Examples of formal vs. colloquial query mismatches
+- Statistics on language representation gaps
+
+---
+
+## Slide 5: Mozilla Common Voice - Our Secret Weapon
+**The World's Most Diverse Open Speech Dataset**
+
+**Impressive Scale (2024):**
+- **30,000+ hours** of recorded speech
+- **140+ languages** including underrepresented ones
+- **750,000+ contributors** worldwide
+- Completely **open source** and public domain
+
+**What Makes It Special:**
+- **Natural Speech:** Captures how people actually talk
+- **Community-Driven:** Local communities validate their languages
+- **Multilingual:** Covers languages ignored by big tech
+- **Crowdsourced:** Real people, real voices, real diversity
+
+**Our Innovation:**
+Instead of using Common Voice for speech recognition, we leverage its **transcriptions** for text-based RAG enhancement!
+
+**Visual Elements:**
+- Global map showing 140+ languages
+- Audio waveform transforming into text
+- Mozilla Common Voice statistics
+
+---
+
+## Slide 6: Our Novel Approach - Speech-Derived Text for RAG
+**Repurposing Speech Data for Better Text Retrieval**
+
+**The Core Insight:**
+Speech transcriptions capture linguistic diversity that traditional text corpora miss - they reflect how people **actually communicate**.
+
+**Three-Step Pipeline:**
+
+**Step 1: Data Preparation**
+- Extract transcriptions from Common Voice datasets
+- Focus on natural language variations from speech
+- Clean and preprocess while preserving colloquialisms
+
+**Step 2: Synthetic Training Data**
+- Generate Q&A pairs using GPT-4 from transcriptions
+- Create diverse query formulations
+- Maintain linguistic authenticity
+
+**Step 3: Embedding Fine-tuning**
+- Train BAAI/bge-small-en on speech-derived data
+- Bridge formality gap between queries and knowledge
+- Create robust retrieval for diverse query types
+
+**Visual Elements:**
+- Pipeline diagram: Speech → Transcription → Q&A → Fine-tuning → Enhanced RAG
+- Before/after query handling examples
+
+---
+
+## Slide 7: Why Swahili? Perfect Test Case
+**Demonstrating Impact on Underrepresented Languages**
+
+**Swahili as Strategic Choice:**
+- **150+ million speakers** across East Africa
+- **Well-represented** in Common Voice with active community
+- **Underrepresented** in traditional NLP datasets
+- **Natural variations** between formal and spoken Swahili
+
+**Technical Advantages:**
+- Thousands of validated Common Voice transcriptions
+- Multiple speaker demographics and regions
+- Rich oral tradition captured in natural speech patterns
+- Strong community validation ensuring quality
+
+**Broader Impact:**
+Success with Swahili demonstrates scalability to other underrepresented languages across Africa and globally.
+
+**Visual Elements:**
+- East Africa map highlighting Swahili regions
+- Common Voice Swahili statistics
+- Examples of formal vs. colloquial Swahili variations
+
+---
+
+## Slide 8: Technical Architecture Deep Dive
+**From Speech Transcriptions to Better Embeddings**
+
+**Implementation Details:**
+
+```python
+# Load Common Voice Swahili transcriptions
+train_dataset = load_dataset("mozilla-foundation/common_voice_17_0", "sw")
+train_texts = train_dataset["sentence"]
+
+# Generate synthetic Q&A pairs with GPT-4
+train_dataset = generate_qa_embedding_pairs(
+    llm=OpenAI(model="gpt-4o"),
+    nodes=train_nodes
+)
+
+# Fine-tune embeddings
+finetune_engine = SentenceTransformersFinetuneEngine(
+    train_dataset,
+    model_id="BAAI/bge-small-en",
+    model_output_path="enhanced_model"
+)
+```
+
+**Key Components:**
+- Base model: BAAI/bge-small-en (384-dimensional embeddings)
+- Training framework: SentenceTransformers with MultipleNegativesRankingLoss
+- Maximum sequence length: 512 tokens
+- Similarity function: Cosine similarity
+- Evaluation: Hit rate and comprehensive IR metrics
+
+**Visual Elements:**
+- Code snippets with syntax highlighting
+- Architecture diagram showing data flow
+- Model training visualization
+
+---
+
+## Slide 9A: Deep Dive into Information Retrieval Metrics
+**What Do These Numbers Actually Mean?**
+
+**Accuracy@K - The Success Rate:**
+- **Definition:** Percentage of queries where the correct document appears in top-K results
+- **Real-world meaning:** "Out of 100 user questions, how many got the right answer?"
+- **Our results:** 72.2% → 92.4% @ K=1 means 20 more users out of 100 get immediate answers
+
+**Mean Reciprocal Rank (MRR) - The Speed Factor:**
+- **Definition:** Average of 1/(position of first correct answer)
+- **Real-world meaning:** "How quickly do users find what they need?"
+- **Calculation example:** Answer at position 1 = 1.0, position 2 = 0.5, position 3 = 0.33
+- **Our results:** 0.767 → 0.938 means users find answers much faster
+
+**NDCG@K - The Ranking Quality:**
+- **Definition:** Measures how well the system ranks relevant results at the top
+- **Real-world meaning:** "Are the best answers shown first?"
+- **Why it matters:** Users typically only look at the first few results
+- **Our results:** 0.791 → 0.944 shows dramatically better result ordering
+
+**Precision vs Recall - The Quality vs Coverage Trade-off:**
+- **Precision@K:** "Of the results shown, how many are actually relevant?"
+- **Recall@K:** "Of all relevant documents, how many did we find?"
+- **RAG balance:** Need high precision (no noise) AND high recall (complete coverage)
+
+**Concrete Example: Query "Jinsi ya kupika ugali" (How to cook ugali)**
+
+**Poor System (BGE baseline):**
+1. Recipe for pasta (irrelevant)
+2. Ugali nutrition facts (somewhat relevant)
+3. **How to cook ugali** (correct answer at rank 3)
+4. Maize farming (irrelevant)
+5. Kitchen equipment (irrelevant)
+
+Results: Accuracy@1: ❌, MRR: 0.33, Precision@5: 0.2 (lots of noise)
+
+**Good System (Our fine-tuned):**
+1. **How to cook ugali** (correct answer at rank 1)
+2. Ugali recipe variations (relevant)
+3. Ugali serving suggestions (relevant)
+4. Kenyan cooking techniques (relevant)
+5. Traditional African foods (relevant)
+
+Results: Accuracy@1: ✅, MRR: 1.0, Precision@5: 1.0 (no noise)
+
+**Visual Elements:**
+- Interactive examples showing metric calculations
+- User journey illustrations
+- Search result ranking comparisons
+
+---
+
+## Slide 9A: Deep Dive into Information Retrieval Metrics
+**What Do These Numbers Actually Mean?**
+
+**Model Performance From README:**
+Our fine-tuned model achieves these remarkable scores:
+- **Cosine Accuracy@1:** 0.924 (92.4%)
+- **Cosine Accuracy@5:** 0.959 (95.9%)
+- **Cosine NDCG@10:** 0.9443
+- **Cosine MRR@10:** 0.9382
+
+**Training Progression (from model logs):**
+| Epoch | Step | NDCG@10 |
+|:-----:|:----:|:-------:|
+| 0.17  | 50   | 0.8917  |
+| 1.00  | 300  | 0.9346  |
+| **2.00** | **600** | **0.9443** |
+
+**What This Means in Practice:**
+
+**Accuracy@1 = 92.4%:**
+- Out of 100 user queries, 92 get the perfect answer as the #1 result
+- This is exceptional performance - most users find what they need immediately
+
+**NDCG@10 = 0.9443:**
+- Near-perfect ranking quality (1.0 is theoretical maximum)
+- Relevant results consistently appear at the top
+- Users see high-quality, ordered results
+
+**MRR@10 = 0.9382:**
+- Average position of correct answers is very high (close to position 1)
+- Fast user satisfaction with minimal scrolling needed
+
+**Real-World Impact:**
+- **95.9%** of queries succeed in top-5 results
+- **28% improvement** over baseline in immediate answer finding
+- Dramatic reduction in user frustration and search time
+
+**Visual Elements:**
+- Performance progression charts
+- Before/after user experience scenarios
+- Metric calculation examples
+
+---
+
+## Slide 9: Evaluation Framework - Measuring Success
+**Understanding Information Retrieval Metrics**
+
+**Core Metrics Explained:**
+
+**Hit Rate/Accuracy@K (0-100%):**
+- **What:** % of queries finding correct answer in top-K results
+- **Why:** Direct measure of success - "Did we find what users need?"
+- **Example:** 95.9% @ K=5 means 96 out of 100 queries succeed
+
+**Mean Reciprocal Rank (MRR) (0-1.0):**
+- **What:** Average of 1/rank for first correct result
+- **Why:** Rewards finding answers quickly (rank 1 = 1.0, rank 2 = 0.5)
+- **Impact:** Higher MRR = faster user satisfaction
+
+**NDCG@K (0-1.0):**
+- **What:** Ranking quality with position-based decay
+- **Why:** Top results matter most to users
+- **Impact:** Better prioritization of relevant content
+
+**Three-Model Comparison:**
+1. **OpenAI Ada** (proprietary baseline)
+2. **BAAI/bge-small-en** (open source baseline)  
+3. **Our Fine-tuned Model** (Common Voice enhanced)
+
+**Why These Matter for RAG:**
+- **Accuracy@1:** Immediate answer finding
+- **MRR:** User experience speed
+- **Recall:** Knowledge coverage completeness
+
+**Visual Elements:**
+- Metrics explanation diagrams
+- Before/after comparison examples
+- User experience impact visualization
+
+---
+
+## Slide 10: Results - Dramatic Performance Improvements
+**The Numbers Prove Our Approach Works**
+
+**Hit Rate Performance:**
+- **BAAI/bge-small-en (baseline):** 82.8% Hit Rate@5
+- **Our Fine-tuned Model:** 95.9% Hit Rate@5 ⬆️ **+15.8% improvement**
+
+**Information Retrieval Metrics:**
+- **Accuracy@1:** 72.2% → 92.4% (+28.0% improvement)
+- **MRR@10:** 0.767 → 0.938 (+22.3% improvement)
+- **NDCG@10:** 0.791 → 0.944 (+19.3% improvement)
+- **Recall@10:** 86.7% → 96.3% (+11.1% improvement)
+
+**Key Achievements:**
+- ✅ Small fine-tuned model outperforms expensive proprietary embeddings
+- ✅ Significant improvement in handling colloquial queries
+- ✅ Better performance on Swahili language tasks
+- ✅ Successfully bridges the "formality gap"
+
+**Cost Benefits:**
+- Open source model vs. proprietary APIs
+- No vendor lock-in, fully customizable
+- Reduced inference costs for deployment
+
+**Visual Elements:**
+- Performance comparison bar charts
+- ROC curves showing improvement
+- Cost-benefit analysis visualization
+
+---
+
+## Slide 11: Real-World Applications & Impact
+**Transforming AI Systems for Diverse Communities**
+
+**Immediate Applications:**
+
+**Multilingual Customer Support**
+- Better understanding of colloquial queries
+- Improved response accuracy for diverse populations
+- Reduced language barriers in service delivery
+
+**Educational AI Assistants**
+- More natural interaction with students
+- Better handling of informal questions
+- Inclusive access to educational resources
+
+**Healthcare Information Systems**
+- Understanding patient queries in natural language
+- Bridging medical terminology with everyday expressions
+- Improving health information accessibility
+
+**Voice-to-Text Search Enhancement**
+- Better alignment between spoken queries and text retrieval
+- Improved performance for voice-based AI assistants
+
+**Scalability Potential:**
+- Extend to other African languages (Yoruba, Hausa, Amharic)
+- Apply to global underrepresented languages
+- Integrate with enterprise RAG systems
+
+**Visual Elements:**
+- Use case scenarios with diverse users
+- Before/after user experience examples
+- Global impact visualization
+
+---
+
+## Slide 12: The African AI Opportunity
+**Building Inclusive Technology for 1.3 Billion People**
+
+**The Challenge:**
+- Africa: 1.3 billion people, 2000+ languages
+- Limited representation in AI training data
+- Tech solutions often don't reflect local contexts
+- Language barriers limit AI accessibility
+
+**Our Contribution:**
+This work demonstrates how to systematically address linguistic diversity using open resources.
+
+**Broader Vision:**
+- **Language Democracy:** Every language deserves AI representation
+- **Community-Driven:** Local experts guide AI development
+- **Open Innovation:** Shared resources benefit everyone
+- **Cultural Preservation:** Technology supports linguistic heritage
+
+**Call to Action:**
+- Contribute to Common Voice in your language
+- Adapt our methods for your context
+- Join the global community of inclusive AI builders
+
+**Visual Elements:**
+- African continent with language diversity
+- Community photos from various countries
+- Open source contribution statistics
+
+---
+
+## Slide 13: Technical Implementation Overview
+**Complete Pipeline in Production**
+
+**Model Architecture (from README):**
+```
+SentenceTransformer(
+  (0): Transformer({'max_seq_length': 512, 'do_lower_case': True}) 
+      with Transformer model: BertModel 
+  (1): Pooling({'word_embedding_dimension': 384, 
+                'pooling_mode_cls_token': True})
+  (2): Normalize()
+)
+```
+
+**Key Implementation Components:**
+
+**Data Pipeline:**
+```python
+# Load and process Common Voice data
+dataset = load_dataset("mozilla-foundation/common_voice_17_0", "sw")
+texts = dataset["sentence"]
+cleaned_corpus = preprocess_speech_transcriptions(texts)
+```
+
+**Synthetic Data Generation:**
+```python
+# Generate diverse Q&A pairs
+qa_pairs = generate_qa_embedding_pairs(
+    llm=OpenAI(model="gpt-4o"),
+    texts=cleaned_corpus
+)
+```
+
+**Model Training:**
+```python
+# Fine-tune embeddings with specific hyperparameters
+model = SentenceTransformersFinetuneEngine(
+    qa_pairs, 
+    model_id="BAAI/bge-small-en",
+    eval_strategy="steps",
+    per_device_train_batch_size=10,
+    num_train_epochs=2,
+    learning_rate=5e-05
+).train()
+```
+
+**Training Hyperparameters (from README):**
+- **Loss Function:** MultipleNegativesRankingLoss
+- **Learning Rate:** 5e-05
+- **Batch Size:** 10 per device
+- **Training Epochs:** 2
+- **Evaluation Strategy:** Every 50 steps
+- **Similarity Function:** Cosine similarity
+
+**Production Considerations:**
+- Model size vs. performance trade-offs
+- Inference speed optimization
+- Multi-language scaling strategies
+- Quality control and monitoring
+
+**Visual Elements:**
+- Complete code flow diagram
+- Performance monitoring dashboard
+- Deployment architecture
+
+---
+
+## Slide 14: Open Source & Community Impact
+**Building Together - Code, Data, Knowledge**
+
+**What We're Open Sourcing:**
+
+**Complete Implementation:**
+- Full pipeline with detailed documentation
+- Reusable components for any language
+- Evaluation frameworks and benchmarks
+- Performance comparison tools
+
+**Community Contributions Welcome:**
+- Additional language implementations
+- Improved evaluation metrics
+- Alternative model architectures
+- Real-world application case studies
+
+**How to Get Involved:**
+1. **GitHub Repository:** [Repository link]
+2. **Hugging Face Models:** huggingface.co/thinkKenya
+3. **Research Paper:** [Publication link]
+4. **Community Discussion:** [Forum/Discord link]
+
+**Supporting Organizations:**
+- Mozilla Common Voice community
+- Hugging Face ecosystem
+- African AI research networks
+- Open source ML communities
+
+**Visual Elements:**
+- GitHub repository screenshot
+- Community contribution guidelines
+- Partnership network diagram
+- Open source license information
+
+---
+
+## Slide 15: Limitations & Future Improvements
+**Honest Assessment and Research Directions**
+
+**Current Limitations:**
+
+**Data Dependencies:**
+- Results depend on Common Voice transcription quality
+- Language coverage varies by community engagement
+- Some languages have limited available data
+
+**Technical Constraints:**
+- Fine-tuning requires GPU resources
+- Model size vs. performance trade-offs
+- Evaluation challenges for underrepresented languages
+
+**Future Research Directions:**
+
+**Immediate Next Steps:**
+- Extend to other African languages (Yoruba, Hausa, Amharic)
+- Larger model architectures and multi-task learning
+- Cross-lingual transfer learning experiments
+
+**Advanced Research:**
+- Multi-modal approaches (text + speech features)
+- Active learning for data efficiency
+- Bias measurement and mitigation
+- Cultural context quantification
+
+**Visual Elements:**
+- Limitation impact assessment
+- Research roadmap timeline
+- Technical requirements matrix
+
+---
+
+## Slide 16: Business & Deployment Considerations
+**From Research to Production**
+
+**Cost-Benefit Analysis:**
+
+**Traditional Approach:**
+- Expensive proprietary API calls
+- Vendor lock-in and dependency
+- Limited customization options
+- Ongoing usage costs
+
+**Our Approach:**
+- One-time fine-tuning cost
+- Open source model ownership
+- Full customization control
+- Reduced inference costs
+
+**Deployment Strategies:**
+- On-premise model hosting
+- Cloud-based inference services
+- Edge deployment for mobile apps
+- Hybrid cloud-edge architectures
+
+**Business Impact:**
+- Improved user satisfaction for diverse populations
+- Expanded market reach to underrepresented languages
+- Reduced operational costs vs. proprietary solutions
+- Competitive advantage through linguistic inclusion
+
+**Integration Paths:**
+- Existing RAG system enhancement
+- New application development
+- Enterprise knowledge management
+- Customer service optimization
+
+**Visual Elements:**
+- Cost comparison charts
+- Deployment architecture options
+- ROI calculation examples
+
+---
+
+## Slide 17: Call to Action & Next Steps
+**Join the Movement for Inclusive AI**
+
+**For Researchers:**
+- Cite and build upon our work
+- Extend to your target languages
+- Contribute improvements to the community
+- Validate results in your domain
+
+**For Developers:**
+- Integrate our models into your applications
+- Contribute code improvements and optimizations
+- Share performance results and feedback
+- Build production deployments
+
+**For Organizations:**
+- Pilot projects with underrepresented languages
+- Support Common Voice data collection
+- Sponsor research and development
+- Advocate for linguistic diversity in AI
+
+**Immediate Actions:**
+1. ⭐ Star our GitHub repository
+2. 🤗 Try our models on Hugging Face
+3. 🎤 Contribute to Common Voice in your language
+4. 📧 Connect with us for collaboration
+
+**Partnership Opportunities:**
+- Academic research collaboration
+- Industry pilot projects
+- Community-driven evaluations
+- Policy and ethics research
+
+**Visual Elements:**
+- Action items with clear CTAs
+- Partnership opportunity matrix
+- Community growth visualization
+
+---
+
+## Slide 18: Q&A & Contact Information
+**Let's Continue the Conversation**
+
+**Discussion Topics:**
+- Technical implementation questions
+- Language-specific adaptation strategies
+- Business integration considerations
+- Research collaboration opportunities
+
+**Connect With Us:**
+
+**THiNK (Tech Innovators Network):**
+- 🌐 Website: think.ke
+- 📧 Email: [contact email]
+- 🐦 Social: [Twitter/LinkedIn handles]
+
+**Project Resources:**
+- 💻 GitHub: [repository link]
+- 🤗 Hugging Face: huggingface.co/thinkKenya
+- 📄 Paper: [publication link]
+- 💬 Community: [discussion forum]
+
+**Mozilla Common Voice:**
+- 🎤 Contribute: commonvoice.mozilla.org
+- 📊 Data: Available through Hugging Face Datasets
+
+**Thank You!**
+Special thanks to Mozilla Common Voice community, our research collaborators, and all contributors to open source language technology.
+
+**Visual Elements:**
+- Contact information prominently displayed
+- QR codes for easy resource access
+- Community logos and attributions
+- Thank you message with community photos
+
+---
+
+**Presentation Notes:**
+- Total slides: 18
+- Duration: 60 minutes (3-4 minutes per slide average)
+- Interactive elements: Live demo potential in slides 8, 10, 13
+- Q&A built into final slide for flexible timing
+- Technical depth balanced with accessibility
+- Clear call-to-action and next steps
